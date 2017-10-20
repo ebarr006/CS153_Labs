@@ -323,7 +323,9 @@ int
 waitpid(int pid, int *status, int options){
   struct proc *p;
   struct proc *curproc = myproc();
-  
+  if(NPROC < 2 ){
+ 	return(0);
+  }
   for(;;){ 
   	//scan through the table looking for process maching pid
 	for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
