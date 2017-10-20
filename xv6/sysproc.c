@@ -12,18 +12,17 @@ sys_fork(void)
 {
   return fork();
 }
-
 int
 sys_exit(void)
 {
   exit(0);
   return 0;  // not reached
+ // return exit(0);
 }
-
 int
 sys_wait(void)
 {
-  return wait();
+  return wait(0);
 }
 
 int

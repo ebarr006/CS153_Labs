@@ -224,7 +224,7 @@ fork(void)
 // Exit the current process.  Does not return.
 // An exited process remains in the zombie state
 // until its parent calls wait() to find out it exited.
-int
+void
 exit(int status)
 {
   struct proc *curproc = myproc();
@@ -298,16 +298,16 @@ wait(int *status)
         p->killed = 0;
         p->state = UNUSED;
         release(&ptable.lock);
-	p->wait = pid;
+	*status = p->exit;
         return pid;
       }
     }
 
     // No point waiting if we don't have any children.
     if(!havekids || curproc->killed){
-      release(&ptable.lock);
-      p->wait = -1;
+      release(&ptable.lock); 
       return -1;
+
     }
 
     // Wait for children to exit.  (See wakeup1 call in proc_exit.)
