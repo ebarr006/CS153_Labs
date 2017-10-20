@@ -314,6 +314,35 @@ wait(int *status)
     sleep(curproc, &ptable.lock);  //DOC: wait-sleep
   }
 }
+// Adding waitpid() this system call must wait for a process (not 
+// necessary a child process) with a pid that equals to one provided
+// by the pid argument. The return value must be the process id of the 
+// process id of the process that was terminated or -1 if the process 
+// does not exit or if an unexpected error occurred. 
+int
+waitpid(int pid, int *status, int options){
+  struct proc *p;
+  struct proc *curproc = myproc();
+  
+  for(;;){ 
+  	//scan through the table looking for process maching pid
+	for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+		if(p->parent != curproc)
+			continue;
+		if(p->pid == pid){
+		
+		}
+	
+	}
+
+  }
+
+}
+
+
+
+
+
 
 //PAGEBREAK: 42
 // Per-CPU process scheduler.

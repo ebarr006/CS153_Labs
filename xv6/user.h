@@ -6,6 +6,8 @@ int fork(void);
 //int exit(void) __attribute__((noreturn));
 void exit(int status);
 //int wait(void);
+//adding waitpid system call 
+int waitpid(int pid, int *status, int options);
 int wait(int *status);
 int pipe(int*);
 int write(int, void*, int);
