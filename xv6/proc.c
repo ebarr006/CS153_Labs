@@ -323,27 +323,46 @@ int
 waitpid(int pid, int *status, int options){
   struct proc *p;
   struct proc *curproc = myproc();
+  int havekids;
   if(NPROC < 2 ){
  	return(0);
   }
   for(;;){ 
   	//scan through the table looking for process maching pid
+	havekids = 0;
 	for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
 		if(p->parent != curproc)
 			continue;
-		if(p->pid == pid){
-		
+	        havekids = 1;
+		if(p->state == ZOMBIE){
+			if(p->pid == pid){
+				//Found it 
+				kfree(p->kstack);
+				p->kstack = 0;
+				freevm(p->pgdir);
+				p->pid = 0;
+				p->parent =0;
+				p->name[0] = 0;
+				p->killed = 0;
+				p->state = UNUSED;
+				release(&ptable.lock);
+				*status = p->exit;
+				return pid;
+
+			}	
 		}
-	
+		//not waiting is the proccess is not here 
+		if(!havekids || curproc->killed){
+			release(&ptable.lock);
+			return -1;
+		}
+		//wait for children with pid to finish
+		sleep(curproc, &ptable.lock);  
 	}
 
   }
 
 }
-
-
-
-
 
 
 //PAGEBREAK: 42
