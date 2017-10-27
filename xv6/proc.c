@@ -320,48 +320,56 @@ wait(int *status)
 // process id of the process that was terminated or -1 if the process 
 // does not exit or if an unexpected error occurred. 
 int
-waitpid(int pid, int *status, int options){
+waitpid(int pid, int *status, int options)
+{
+  
   struct proc *p;
   struct proc *curproc = myproc();
-  int havekids;
-  if(NPROC < 2 ){
- 	return(0);
-  }
-  for(;;){ 
-  	//scan through the table looking for process maching pid
-	havekids = 0;
-	for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-		if(p->parent != curproc)
-			continue;
-	        havekids = 1;
-		if(p->state == ZOMBIE){
-			if(p->pid == pid){
-				//Found it 
-				kfree(p->kstack);
-				p->kstack = 0;
-				freevm(p->pgdir);
-				p->pid = 0;
-				p->parent =0;
-				p->name[0] = 0;
-				p->killed = 0;
-				p->state = UNUSED;
-				release(&ptable.lock);
-				*status = p->exit;
-				return pid;
-
-			}	
-		}
-		//not waiting is the proccess is not here 
-		if(!havekids || curproc->killed){
-			release(&ptable.lock);
-			return -1;
-		}
-		//wait for children with pid to finish
-		sleep(curproc, &ptable.lock);  
+  int pfound = 0;
+ 
+  acquire(&ptable.lock);
+  // look for the process matching the process id
+  for (p = ptable.proc; p <& ptable.proc[NPROC]; p++){
+	if(p->pid != pid) continue;
+	else{
+		pfound = 1;
+		break;
 	}
 
   }
+  // In case its not found exit
+  if(!pfound){
+    release(&ptable.lock);
+    if(status) *status = -1;
+    return -1;
+  //otherwise we wait until it is done
+  }else{
 
+ 	for(;;){ 
+		if(p->state == ZOMBIE){
+			//Found it 
+			kfree(p->kstack);
+			p->kstack = 0;
+			freevm(p->pgdir);
+			p->pid = 0;
+			p->parent =0;
+			p->name[0] = 0;
+			p->killed = 0;
+			p->state = UNUSED;
+			release(&ptable.lock);
+			if(status) *status = p->exit;
+			return pid;
+		}else if(p->state == UNUSED){
+	                if (status) *status = p->exit;
+			release(&ptable.lock);
+			return pid;	
+		}
+	
+	
+		//wait for children with pid to finish
+	 	sleep(curproc, &ptable.lock);  
+       }
+  }
 }
 
 
