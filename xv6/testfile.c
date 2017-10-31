@@ -7,7 +7,7 @@ main( int argc, char **argv){
 	printf(1, "Test for exit, wait, and waitpid syscals ;) \n \n");
 	
 	int pid1 = fork();
-	//wait(0);
+        wait(0);
 	
 	printf(1,"First pid: %d\n\n",pid1);
 	
@@ -19,7 +19,7 @@ main( int argc, char **argv){
 	}else{
 		int pid2 = fork();
 	        
-		//waitpid(pid2, 0 , 0);
+		waitpid(pid1, 0 , 0);
 		if(pid2 == 0){
 			wait(0);
 			printf(1,"child with pid: %d \n\n",pid1);
@@ -27,9 +27,10 @@ main( int argc, char **argv){
 		}else{
 			printf(1,"child2 pid: %d\n\n",pid2);
 			exit(0);
-		}	
+		}
+		exit(0);	
 	}
 	
-	//exit(0);
+	exit(0);
 
 }

@@ -340,7 +340,7 @@ waitpid(int pid, int *status, int options)
   // In case its not found exit
   if(!pfound){
     release(&ptable.lock);
-    if(status) *status = -1;
+    *status = -1;
     return -1;
   //otherwise we wait until it is done
   }else{
@@ -357,10 +357,10 @@ waitpid(int pid, int *status, int options)
 			p->killed = 0;
 			p->state = UNUSED;
 			release(&ptable.lock);
-			if(status) *status = p->exit;
+		        *status = p->exit;
 			return pid;
 		}else if(p->state == UNUSED){
-	                if (status) *status = p->exit;
+	                *status = p->exit;
 			release(&ptable.lock);
 			return pid;	
 		}
