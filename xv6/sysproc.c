@@ -108,3 +108,14 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+///////////////////////////////////////////////////////////
+//CS-153 change priority syscall
+int 
+sys_change_priority(void)
+{
+   int pid, priority;
+   if(argint(0, &pid) < 0) return -1;
+   if(argint(1, &priority) < 0) return -1;
+   return change_priority( pid, priority);
+}

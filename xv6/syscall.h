@@ -20,4 +20,5 @@
 #define SYS_link   19
 #define SYS_mkdir  20
 #define SYS_close  21
-#define SYS_waitpid 22  //Lino
+#define SYS_waitpid 22  //waitpid cs-153
+#define SYS_change_priority 23	//change priority cs-153

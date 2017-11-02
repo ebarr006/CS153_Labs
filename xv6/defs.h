@@ -117,9 +117,9 @@ void            sched(void);
 void            setproc(struct proc*);
 void            sleep(void*, struct spinlock*);
 void            userinit(void);
-//int             wait(void);
+int             change_priority(int pid, int priority);    //cs-153 
 int		waitpid(int pid, int *status,int options); //added waitpid system call
-int             wait(int* status);
+int             wait(int* status);			   //cs-153
 void            wakeup(void*);
 void            yield(void);
 

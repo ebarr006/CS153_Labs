@@ -88,7 +88,7 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
-
+  p->priority = 30;         //default priority about half min-max  cs-153
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -381,23 +381,65 @@ waitpid(int pid, int *status, int options)
 //  - swtch to start running that process
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
+
+//**************************************************************
+//cs- 153  adding priority funtions
+//set priority from 0 - 63  when scheduling from the ready list
+//always schedule from the ready list 
+void set_priority( int priority){
+
+
+}
+int get_priority(void){
+	return 30; 
+}
+int change_priority(int pid, int priority)
+{
+    struct proc *p;
+
+    acquire(&ptable.lock);
+    
+    for(p = ptable.proc; p <& ptable.proc[NPROC]; p++){
+	if(p->pid == pid) {
+	    p->priority = priority;
+  	    break;
+	}
+   }
+   release(&ptable.lock);
+   return p-> pid;
+
+}
+
+
+
 void
 scheduler(void)
 {
   struct proc *p;
+  struct proc *ptemp;
+  struct proc *highproc;
   struct cpu *c = mycpu();
   c->proc = 0;
   
   for(;;){
     // Enable interrupts on this processor.
     sti();
-
-    // Loop over process table looking for process to run.
+ 
+    // Loop over process table looking for process to run
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
-
+      
+      highproc = p;  // first runnable proccess found
+      //now we search the table for higer prioties before continuing 
+      for( ptemp = ptable.proc; ptemp < &ptable.proc[NPROC]; ptemp++){
+	if(ptemp->state != RUNNABLE)
+            continue;
+        if(highproc->priority < ptemp->priority)  highproc = ptemp;
+      }
+      p = highproc;
+ 
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
@@ -585,7 +627,7 @@ procdump(void)
       state = states[p->state];
     else
       state = "???";
-    cprintf("%d %s %s", p->pid, state, p->name);
+    cprintf("%d %s %s %d", p->pid, state, p->name, p->priority);
     if(p->state == SLEEPING){
       getcallerpcs((uint*)p->context->ebp+2, pc);
       for(i=0; i<10 && pc[i] != 0; i++)

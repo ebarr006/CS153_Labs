@@ -29,4 +29,5 @@ SYSCALL(getpid)
 SYSCALL(sbrk)
 SYSCALL(sleep)
 SYSCALL(uptime)
-SYSCALL(waitpid)
+SYSCALL(waitpid)     //cs-153 new syscall
+SYSCALL(change_priority)   //cs-153 new syscall for priority 

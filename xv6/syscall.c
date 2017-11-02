@@ -103,7 +103,8 @@ extern int sys_unlink(void);
 extern int sys_wait(void);
 extern int sys_write(void);
 extern int sys_uptime(void);
-extern int sys_waitpid(void);	//add for waitpid syscall
+extern int sys_waitpid(void);	//add for waitpid syscall cs-153
+extern int sys_change_priority(void); //for change priority of process cs-153
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -127,7 +128,8 @@ static int (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
-[SYS_waitpid] sys_waitpid  //add for waitpid syscall 
+[SYS_waitpid] sys_waitpid,                 //add for waitpid syscall 
+[SYS_change_priority] sys_change_priority  //cs-153
 };
 
 void

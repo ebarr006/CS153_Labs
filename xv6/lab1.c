@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
   
   
 int exitWait(void) {
-	  int pid, ret_pid, exit_status;
+       int pid, ret_pid, exit_status;
        int i;
   // use this part to test exit(int status) and wait(int* status)
  
@@ -94,7 +94,7 @@ int waitPid(void){
       printf(1, "\n This is the parent: Now waiting for child with PID# %d\n",pid_a[4]);
       ret_pid = waitpid(pid_a[4], &exit_status, 0);
       printf(1, "\n This is the partent: Child# %d has exited with status %d\n",ret_pid, exit_status);
-      
+      ret_pid = ret_pid;      
       return 0;
   }
       
@@ -104,21 +104,22 @@ int waitPid(void){
     // use this part to test the priority scheduler. Assuming that the priorities range between range between 0 to 63
     // 0 is the highest priority. All processes have a default priority of 20 
 
-  int pid, ret_pid, exit_status;
-  int i,j,k;
-  
+    int pid, ret_pid=0, exit_status;
+    int i,j,k;
+    ret_pid = ret_pid;
+    
     printf(1, "\n  Step 2: testing the priority scheduler and setpriority(int priority)) systema call:\n");
     printf(1, "\n  Step 2: Assuming that the priorities range between range between 0 to 63\n");
     printf(1, "\n  Step 2: 0 is the highest priority. All processes have a default priority of 20\n");
     printf(1, "\n  Step 2: The parent processes will switch to priority 0\n");
-    setpriority(0);
+    change_priority(getpid(), 0);
     for (i = 0; i <  3; i++) {
 	pid = fork();
 	if (pid > 0 ) {
 		continue;}
 	else if ( pid == 0) {
 //		printf(1, "\n Hello! this is child# %d and I will change my priority to %d \n",getpid(),60-20*i);
-		setpriority(60-20*i);	
+		change_priority(getpid(),60-20*i);	
 		for (j=0;j<50000;j++) {
 			for(k=0;k<10000;k++) {
 				asm("nop"); }}
