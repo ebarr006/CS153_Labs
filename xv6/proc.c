@@ -298,7 +298,7 @@ wait(int *status)
         p->killed = 0;
         p->state = UNUSED;
         release(&ptable.lock);
-	*status = p->exit;
+	*status = p->exit;  //cs-153
         return pid;
       }
     }
@@ -318,7 +318,7 @@ wait(int *status)
 // necessary a child process) with a pid that equals to one provided
 // by the pid argument. The return value must be the process id of the 
 // process id of the process that was terminated or -1 if the process 
-// does not exit or if an unexpected error occurred. 
+// does not exit or if an unexpected error occurred. cs-153
 int
 waitpid(int pid, int *status, int options)
 {
@@ -383,16 +383,9 @@ waitpid(int pid, int *status, int options)
 //      via swtch back to the scheduler.
 
 //**************************************************************
-//cs- 153  adding priority funtions
+//cs-153  adding priority funtions
 //set priority from 0 - 63  when scheduling from the ready list
 //always schedule from the ready list 
-void set_priority( int priority){
-
-
-}
-int get_priority(void){
-	return 30; 
-}
 int change_priority(int pid, int priority)
 {
     struct proc *p;
@@ -406,7 +399,7 @@ int change_priority(int pid, int priority)
 	}
    }
    release(&ptable.lock);
-   return p-> pid;
+   return p->pid;
 
 }
 
@@ -427,13 +420,19 @@ scheduler(void)
  
     // Loop over process table looking for process to run
     acquire(&ptable.lock);
+    /*highproc = ptable.proc;
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
+	if(p->state == RUNNABLE && p->priority > highproc->priority)
+	   highproc = p;
+    } */
+   
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state != RUNNABLE )
         continue;
       
       highproc = p;  // first runnable proccess found
       //now we search the table for higer prioties before continuing 
-      for( ptemp = ptable.proc; ptemp < &ptable.proc[NPROC]; ptemp++){
+       for( ptemp = ptable.proc; ptemp < &ptable.proc[NPROC]; ptemp++){
 	if(ptemp->state != RUNNABLE)
             continue;
         if(highproc->priority < ptemp->priority)  highproc = ptemp;
