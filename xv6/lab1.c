@@ -58,7 +58,7 @@ int exitWait(void) {
 
 int waitPid(void){
 	
-  int ret_pid, exit_status;
+  int ret_pid, exit_status=100;
   int i;
   int pid_a[5]={0, 0, 0, 0, 0};
  // use this part to test wait(int pid, int* status, int options)
