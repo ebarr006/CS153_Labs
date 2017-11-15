@@ -13,7 +13,6 @@ exec(char *path, char **argv)
   char *s, *last;
   int i, off;
   uint argc, sz, sp, ustack[3+MAXARG+1];
-  uint top_stack;
   struct elfhdr elf;
   struct inode *ip;
   struct proghdr ph;
@@ -39,14 +38,8 @@ exec(char *path, char **argv)
   if((pgdir = setupkvm()) == 0)
     goto bad;
 
-  // check for avalible Page of Memory cs 153  
+  // Load program into memory.
   sz = 0;
-  if((sz = allocuvm(pgdir, sz, sz + PGSIZE)==0))
-      goto bad;
-  clearpteu(pgdir, (char*)(sz - PGSIZE));  
-
-
-  //Load Program into Memory lab2 
   for(i=0, off=elf.phoff; i<elf.phnum; i++, off+=sizeof(ph)){
     if(readi(ip, (char*)&ph, off, sizeof(ph)) != sizeof(ph))
       goto bad;
@@ -69,14 +62,12 @@ exec(char *path, char **argv)
 
   // Allocate two pages at the next page boundary.
   // Make the first inaccessible.  Use the second as the user stack.
-  // stark the stack from the top of Physcal memory 
- //*************sz = PGROUNDUP(sz);
-  top_stack = KERNBASE - 2*PGSIZE;
-  if((sp = allocuvm(pgdir, top_stack, KERNBASE -1)) == 0)
+  sz = PGROUNDUP(sz);
+  if((sz = allocuvm(pgdir, sz, sz + 2*PGSIZE)) == 0)
     goto bad;
-  clearpteu(pgdir, (char*)(top_stack));
-  //sp = sz;
-  //***************************
+  clearpteu(pgdir, (char*)(sz - 2*PGSIZE));
+  sp = sz;
+
   // Push argument strings, prepare rest of stack in ustack.
   for(argc = 0; argv[argc]; argc++) {
     if(argc >= MAXARG)
@@ -105,7 +96,6 @@ exec(char *path, char **argv)
   // Commit to the user image.
   oldpgdir = curproc->pgdir;
   curproc->pgdir = pgdir;
-  curproc->top_stack = top_stack;
   curproc->sz = sz;
   curproc->tf->eip = elf.entry;  // main
   curproc->tf->esp = sp;

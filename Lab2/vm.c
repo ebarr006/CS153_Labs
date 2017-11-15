@@ -224,7 +224,7 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
   char *mem;
   uint a;
 
-  if(newsz > KERNBASE)
+  if(newsz >= KERNBASE)
     return 0;
   if(newsz < oldsz)
     return oldsz;
@@ -313,13 +313,13 @@ clearpteu(pde_t *pgdir, char *uva)
 // Given a parent process's page table, create a copy
 // of it for a child.
 pde_t*
-copyuvm(pde_t *pgdir, uint sz, uint top_stack)
+copyuvm(pde_t *pgdir, uint sz)
 {
   pde_t *d;
   pte_t *pte;
   uint pa, i, flags;
   char *mem;
-  
+
   if((d = setupkvm()) == 0)
     return 0;
   for(i = 0; i < sz; i += PGSIZE){
@@ -335,10 +335,6 @@ copyuvm(pde_t *pgdir, uint sz, uint top_stack)
     if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0)
       goto bad;
   }
-  
-  if(top_stack == 0) return d;
-  // need a for loop form i =top_stack to KERNBASE
-
   return d;
 
 bad:
