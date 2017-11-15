@@ -72,7 +72,7 @@ exec(char *path, char **argv)
   // stark the stack from the top of Physcal memory 
  //*************sz = PGROUNDUP(sz);
   top_stack = KERNBASE - 2*PGSIZE;
-  if((sp = allocuvm(pgdir, top_stack, KERNBASE)) == 0)
+  if((sp = allocuvm(pgdir, top_stack, KERNBASE -1)) == 0)
     goto bad;
   clearpteu(pgdir, (char*)(top_stack));
   //sp = sz;
