@@ -12,6 +12,7 @@ exec(char *path, char **argv)
 {
   char *s, *last;
   int i, off;
+  uint top_stack;
   uint argc, sz, sp, ustack[3+MAXARG+1];
   struct elfhdr elf;
   struct inode *ip;
@@ -97,6 +98,7 @@ exec(char *path, char **argv)
   oldpgdir = curproc->pgdir;
   curproc->pgdir = pgdir;
   curproc->sz = sz;
+  curproc->top_stack = top_stack;
   curproc->tf->eip = elf.entry;  // main
   curproc->tf->esp = sp;
   curproc->priority = 60;
