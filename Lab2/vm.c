@@ -1,3 +1,4 @@
+
 #include "param.h"
 #include "types.h"
 #include "defs.h"
@@ -224,7 +225,7 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
   char *mem;
   uint a;
 
-  if(newsz >= KERNBASE)
+  if(newsz > KERNBASE)
     return 0;
   if(newsz < oldsz)
     return oldsz;
@@ -326,7 +327,7 @@ copyuvm(pde_t *pgdir, uint sz, uint top_stack)
     if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
       panic("copyuvm: pte should exist");
     if(!(*pte & PTE_P))
-      panic("copyuvm: page not present");
+      panic("copyuvm: page not present/below");
     pa = PTE_ADDR(*pte);
     flags = PTE_FLAGS(*pte);
     if((mem = kalloc()) == 0)
@@ -335,15 +336,16 @@ copyuvm(pde_t *pgdir, uint sz, uint top_stack)
     if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0)
       goto bad;
   }
-  
+ 
   if(top_stack == 0)
    return d;
- for(i = top_stack; i < (KERNBASE -1); i+= PGSIZE){
+  //also copy the stack 
+  for(i = top_stack; i < KERNBASE ; i+= PGSIZE){
     if((pte = walkpgdir(pgdir, (void*) i, 0)) ==0)
        panic("copyuvm: pte should exist");
     if(!(*pte & PTE_P))
-       panic("copyuvm: page not present");
-    pa = PTE_ADDR(*Pte);
+       panic("copyuvm: page not present/stack");
+    pa = PTE_ADDR(*pte);
     flags = PTE_FLAGS(*pte);
     if((mem = kalloc()) == 0)
        goto bad;

@@ -38,9 +38,8 @@ exec(char *path, char **argv)
 
   if((pgdir = setupkvm()) == 0)
     goto bad;
-
   // Load program into memory.
-  sz = 0;
+  sz = 0; 
   for(i=0, off=elf.phoff; i<elf.phnum; i++, off+=sizeof(ph)){
     if(readi(ip, (char*)&ph, off, sizeof(ph)) != sizeof(ph))
       goto bad;
@@ -68,11 +67,10 @@ exec(char *path, char **argv)
    // goto bad;
  // clearpteu(pgdir, (char*)(sz - 2*PGSIZE));
  // sp = sz;
-   top_stack = (KERNBASE-1)-PGSIZE;
-   if((top_stack = allocuvm(pgdir, top_stack, (KERNBASE-1))==0)
+   top_stack = KERNBASE - 2*PGSIZE;
+   if((sp = allocuvm(pgdir, top_stack, KERNBASE))==0)
 	goto bad;
-   clearpteu(pgdir, (char*)((KERNBASE-1) - top_stack);
-
+   clearpteu(pgdir, (char*)top_stack);
   // Push argument strings, prepare rest of stack in ustack.
   for(argc = 0; argv[argc]; argc++) {
     if(argc >= MAXARG)
@@ -97,7 +95,7 @@ exec(char *path, char **argv)
     if(*s == '/')
       last = s+1;
   safestrcpy(curproc->name, last, sizeof(curproc->name));
-
+  
   // Commit to the user image.
   oldpgdir = curproc->pgdir;
   curproc->pgdir = pgdir;
