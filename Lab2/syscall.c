@@ -1,3 +1,4 @@
+
 #include "types.h"
 #include "defs.h"
 #include "param.h"
@@ -32,13 +33,14 @@ int
 fetchstr(uint addr, char **pp)
 {
   char *s, *ep;
-  struct proc *curproc = myproc();
+ // struct proc *curproc = myproc();
 
   if(addr >=( KERNBASE ))
     return -1;
   *pp = (char*)addr;
-  ep = (char*)curproc->sz;
-  for(s = *pp; s < ep; s++){
+ // ep = (char*)curproc->sz;
+ ep = (char*)KERNBASE; 
+ for(s = *pp; s < ep; s++){
     if(*s == 0)
       return s - *pp;
   }
