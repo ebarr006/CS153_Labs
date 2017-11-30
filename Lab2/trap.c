@@ -12,7 +12,7 @@
 struct gatedesc idt[256];
 extern uint vectors[];  // in vectors.S: array of 256 entry pointers
 struct spinlock tickslock;
-uint ticks;
+uint ticks, base, temp;
 
 void
 tvinit(void)
@@ -77,7 +77,20 @@ trap(struct trapframe *tf)
             cpuid(), tf->cs, tf->eip);
     lapiceoi();
     break;
-
+  case T_PGFLT:
+    cprintf("Stack growing\n");
+    base = (myproc()->top_stack - PGSIZE); 
+    if(allocuvm(myproc()->pgdir,base, myproc()->top_stack) == 0){
+	cprintf("pid %d %s: trap %d err %d on cpu %d "
+		"eip 0x%x add 0x%0--kill proc\n",
+		myproc()->pid, myproc()->name, tf->trapno,
+		tf->err, cpuid(), tf->eip, rcr2());
+	myproc()->killed = 1;
+	break;  
+    }
+    myproc()->top_stack = base; 
+    clearpteu(myproc()->pgdir,(char *)base);
+    break;
   //PAGEBREAK: 13
   default:
     if(myproc() == 0 || (tf->cs&3) == 0){
