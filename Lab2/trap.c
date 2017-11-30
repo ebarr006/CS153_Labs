@@ -12,8 +12,8 @@
 struct gatedesc idt[256];
 extern uint vectors[];  // in vectors.S: array of 256 entry pointers
 struct spinlock tickslock;
-uint ticks;
-
+uint ticks, base, temp;
+pte_t *pte;
 void
 tvinit(void)
 {
@@ -77,6 +77,23 @@ trap(struct trapframe *tf)
             cpuid(), tf->cs, tf->eip);
     lapiceoi();
     break;
+  case T_PGFLT:
+  
+    if(rcr2() < myproc()->top_stack && rcr2() > (myproc()->top_stack - PGSIZE)){  
+        base = (myproc()->top_stack - PGSIZE); 
+        if(allocuvm(myproc()->pgdir,base, myproc()->top_stack) == 0){
+	        cprintf("pid %d %s: trap %d err %d on cpu %d "
+		"eip 0x%x add 0x%0--kill proc top stack 0x%x\n",
+		myproc()->pid, myproc()->name, tf->trapno,
+		tf->err, cpuid(), tf->eip, rcr2(), myproc()->top_stack);
+	        myproc()->killed = 1;
+		break;  
+    	}
+        myproc()->top_stack = base; 
+        // clearpteu(myproc()->pgdir,(char *)base);
+        cprintf("stack new location:0x%x\n", myproc()->top_stack);
+    }
+  break;
 
   //PAGEBREAK: 13
   default:
@@ -110,3 +127,4 @@ trap(struct trapframe *tf)
   if(myproc() && myproc()->killed && (tf->cs&3) == DPL_USER)
     exit();
 }
+
