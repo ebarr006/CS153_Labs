@@ -70,7 +70,7 @@ exec(char *path, char **argv)
    top_stack = KERNBASE - 2*PGSIZE;
    if((sp = allocuvm(pgdir, top_stack, KERNBASE))==0)
 	goto bad;
-   clearpteu(pgdir, (char*)(top_stack));
+   //clearpteu(pgdir, (char*)(top_stack));
   // Push argument strings, prepare rest of stack in ustack.
   for(argc = 0; argv[argc]; argc++) {
     if(argc >= MAXARG)
