@@ -81,17 +81,20 @@ trap(struct trapframe *tf)
     if(rcr2() < myproc()->top_stack && rcr2() > (myproc()->top_stack - PGSIZE)){  
         base = (myproc()->top_stack - PGSIZE); 
         if(allocuvm(myproc()->pgdir,base, myproc()->top_stack) == 0){
+	  	goto pagefault;  
+    	}
+        myproc()->top_stack = base; 
+        // clearpteu(myproc()->pgdir,(char *)base);
+        cprintf("stack new location:0x%x\n", myproc()->top_stack);
+        break;
+    }
+  pagefault:
 	        cprintf("pid %d %s: trap %d err %d on cpu %d "
 		"eip 0x%x add 0x%0--kill proc top stack 0x%x\n",
 		myproc()->pid, myproc()->name, tf->trapno,
 		tf->err, cpuid(), tf->eip, rcr2(), myproc()->top_stack);
 	        myproc()->killed = 1;
-		break;  
-    	}
-        myproc()->top_stack = base; 
-        // clearpteu(myproc()->pgdir,(char *)base);
-        cprintf("stack new location:0x%x\n", myproc()->top_stack);
-    }
+
   break;
   //PAGEBREAK: 13
   default:
