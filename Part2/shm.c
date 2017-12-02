@@ -27,16 +27,15 @@ void shminit() {
   }
   release(&(shm_table.lock));
 }
+
 char * kmalloc(void){
   char *mem;
-  uint a; 
-  a = PGROUNDUP(myproc()->sz);
-  
-  mem = kalloc(); 
-  
+  uint a;
+  a = PGROUNDUP(myproc()->sz + PGSIZE);
+  mem = kalloc();
   if(mem == 0){
      cprintf("kmalloc fail \n");
-     return( (char *)0); 
+     return( (char *)0);
   }
   memset(mem, 0, PGSIZE);
   if(mappages(myproc()->pgdir,(char*)a, PGSIZE,V2P(mem),PTE_W|PTE_U) < 0){
@@ -44,24 +43,27 @@ char * kmalloc(void){
      kfree(mem);
      return ((char* )0);
   }
-  return mem; 
+
+ // cprintf("mem: %d\n",*mem);
+  return ((char*) V2P(mem)); 
 
 }
+//***********************************************************************
 int shm_open(int id, char **pointer) {
    int i, index = 0;
    char * frame; 
    uint a;
    
-   //initlock(&shm_table.lock),"SHM lock");
+  // initlock(&shm_table.lock),"SHM lock");
    acquire(&(shm_table.lock));
    //traverse the share memory page table 
-   // loo 
+   // 
    for(i = 0; i < 64; i++){
     	if(shm_table.shm_pages[i].id == id)
            goto located; 
         index++;
    }
-
+   cprintf("case 2 \n");
    index = 0;
    for(i = 0; i < 64; i++){
        if(shm_table.shm_pages[i].refcnt == 0)
@@ -71,13 +73,17 @@ int shm_open(int id, char **pointer) {
    shm_table.shm_pages[index].refcnt++;
    shm_table.shm_pages[index].id = id; 
    shm_table.shm_pages[index].frame = kmalloc();
+   cprintf("id %d\n",id);
    *pointer = (char *)shm_table.shm_pages[index].frame;
-   
+  // cprintf("pointer %s\n", pointer);
+   myproc()->sz+= PGSIZE;
    release(&(shm_table.lock));
    return id;
    located:
-	  a = PGROUNDUP(myproc()->sz);
+          cprintf("case 1\n");
+	  a = PGROUNDUP(myproc()->sz + PGSIZE);
           frame = shm_table.shm_pages[index].frame;
+          cprintf("a: %d  frame: %x\n",a,frame);
           if(mappages(myproc()->pgdir,(char *)a,PGSIZE,V2P(frame),PTE_W|PTE_U) < 0){
 		cprintf("fail to map from exiting page");
 		release(&(shm_table.lock));
@@ -88,7 +94,9 @@ int shm_open(int id, char **pointer) {
           myproc()->sz += PGSIZE;
           release(&(shm_table.lock));
  	return  id;
+         
 
+   release(&(shm_table.lock));
    return 0; //added to remove compiler warning -- you should decide what to return
 }
 
