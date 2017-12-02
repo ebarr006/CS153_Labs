@@ -27,10 +27,30 @@ void shminit() {
   }
   release(&(shm_table.lock));
 }
+char * kmalloc(void){
+  char *mem;
+  uint a; 
+  a = PGROUNDUP(myproc()->sz);
+  
+  mem = kalloc(); 
+  
+  if(mem == 0){
+     cprintf("kmalloc fail \n");
+     return( (char *)0); 
+  }
+  memset(mem, 0, PGSIZE);
+  if(mappages(myproc()->pgdir,(char*)a, PGSIZE,V2P(mem),PTE_W|PTE_U) < 0){
+     cprintf("kmalloc fail to map pages \n");
+     kfree(mem);
+     return ((char* )0);
+  }
+  return mem; 
 
+}
 int shm_open(int id, char **pointer) {
    int i, index = 0;
    char * frame; 
+   uint a;
    
    //initlock(&shm_table.lock),"SHM lock");
    acquire(&(shm_table.lock));
@@ -50,14 +70,15 @@ int shm_open(int id, char **pointer) {
    }
    shm_table.shm_pages[index].refcnt++;
    shm_table.shm_pages[index].id = id; 
-   shm_table.shm_pages[index].frame = kalloc();
+   shm_table.shm_pages[index].frame = kmalloc();
    *pointer = (char *)shm_table.shm_pages[index].frame;
    
    release(&(shm_table.lock));
    return id;
    located:
-	  frame = shm_table.shm_pages[index].frame;
-          if(mappages(myproc()->pgdir,(char *)myproc()->sz,PGSIZE,V2P(frame),PTE_W|PTE_U) < 0){
+	  a = PGROUNDUP(myproc()->sz);
+          frame = shm_table.shm_pages[index].frame;
+          if(mappages(myproc()->pgdir,(char *)a,PGSIZE,V2P(frame),PTE_W|PTE_U) < 0){
 		cprintf("fail to map from exiting page");
 		release(&(shm_table.lock));
 		return (-1);
@@ -74,9 +95,15 @@ int shm_open(int id, char **pointer) {
 
 int shm_close(int id) {
 //you write this too!
+    for(int i = 0; i < 0; i++){
+	if(shm_table.shm_pages[i].id == id){
+	   shm_table.shm_pages[i].refcnt--;
+	   if(shm_table.shm_pages[i].refcnt == 0){
+		shm_table.shm_pages[i].id = 0; 
+           }
+           break;
+       }
+   }
 
-
-
-
-return 0; //added to remove compiler warning -- you should decide what to return
+    return 0; //added to remove compiler warning -- you should decide what to return
 }
