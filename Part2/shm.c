@@ -29,13 +29,46 @@ void shminit() {
 }
 
 int shm_open(int id, char **pointer) {
+   int i, index = 0;
+   char * frame; 
+   
+   //initlock(&shm_table.lock),"SHM lock");
+   acquire(&(shm_table.lock));
+   //traverse the share memory page table 
+   // loo 
+   for(i = 0; i < 64; i++){
+    	if(shm_table.shm_pages[i].id == id)
+           goto located; 
+        index++;
+   }
 
-//you write this
+   index = 0;
+   for(i = 0; i < 64; i++){
+       if(shm_table.shm_pages[i].refcnt == 0)
+           break;
+       index++;
+   }
+   shm_table.shm_pages[index].refcnt++;
+   shm_table.shm_pages[index].id = id; 
+   shm_table.shm_pages[index].frame = kalloc();
+   *pointer = (char *)shm_table.shm_pages[index].frame;
+   
+   release(&(shm_table.lock));
+   return id;
+   located:
+	  frame = shm_table.shm_pages[index].frame;
+          if(mappages(myproc()->pgdir,(char *)myproc()->sz,PGSIZE,V2P(frame),PTE_W|PTE_U) < 0){
+		cprintf("fail to map from exiting page");
+		release(&(shm_table.lock));
+		return (-1);
+	  }
+          shm_table.shm_pages[index].refcnt++;
+ 	  *pointer =(char*)frame;
+          myproc()->sz += PGSIZE;
+          release(&(shm_table.lock));
+ 	return  id;
 
-
-
-
-return 0; //added to remove compiler warning -- you should decide what to return
+   return 0; //added to remove compiler warning -- you should decide what to return
 }
 
 
