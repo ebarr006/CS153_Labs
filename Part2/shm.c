@@ -48,6 +48,7 @@ char * kmalloc(void){
   return ((char*) V2P(mem)); 
 
 }
+
 //***********************************************************************
 int shm_open(int id, char **pointer) {
    int i, index = 0;
